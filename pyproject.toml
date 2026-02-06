@@ -1,0 +1,116 @@
+[build-system]
+requires = [
+  "setuptools>=61.0",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sample-pkg"
+description = "Sample sandbox package for GPU CI testing with Modal."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+  { name = "Jiri Borovec" },
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dynamic = ["version"]
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/Borda/affordable-GPU-CI-with-Modal"
+"Source Code" = "https://github.com/Borda/affordable-GPU-CI-with-Modal"
+
+[tool.setuptools.dynamic]
+version = { attr = "sample_pkg.__about__.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+exclude = [
+  "docs",
+]
+
+lint.select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "I",   # isort
+  "N",   # pep8-naming
+  "S",   # flake8-bandit (security)
+  "UP",  # pyupgrade
+  "W",   # pycodestyle warnings
+]
+lint.extend-select = [
+  "ANN", # flake8-annotations
+  "C4",  # flake8-comprehensions
+  "PT",  # flake8-pytest-style
+  "RET", # flake8-return
+  "SIM", # flake8-simplify
+]
+lint.per-file-ignores."tests/**" = [
+  "S101",
+]
+lint.unfixable = [
+  "F401",
+]
+lint.mccabe.max-complexity = 10
+lint.pydocstyle.convention = "google"
+
+[tool.codespell]
+quiet-level = 3
+
+[tool.pytest.ini_options]
+norecursedirs = [
+  ".git",
+  ".github",
+  "dist",
+  "build",
+  "docs",
+]
+addopts = [
+  "--strict-markers",
+  "--doctest-modules",
+  "--color=yes",
+  "--disable-pytest-warnings",
+]
+xfail_strict = true
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "pass",
+]
+[tool.coverage.run]
+parallel = true
+relative_files = true
+
+[tool.mypy]
+files = [
+  "src/sample_pkg",
+]
+disallow_untyped_defs = true
+ignore_missing_imports = true
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[dependency-groups]
+tests = [
+  "pytest",
+]
