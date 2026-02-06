@@ -1,0 +1,88 @@
+name: Modal GPU Tests (label-triggered)
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  run-if-labeled:
+    if: github.event.label.name == 'gpu-tests'
+    uses: ./.github/workflows/_modal-gpu-tests.yml
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit
+
+  comment:
+    needs: run-if-labeled
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download pytest output
+        uses: actions/download-artifact@v4
+        with:
+          name: pytest-output
+          path: test-outputs
+
+      - name: Comment on PR with test results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'test-outputs/pytest-output.log';
+
+            let comment = '## 🎮 GPU Test Results\n\n';
+
+            if (fs.existsSync(path)) {
+              let output = fs.readFileSync(path, 'utf8');
+
+              // Strip ANSI color codes for clean display
+              // eslint-disable-next-line no-control-regex
+              output = output.replace(/\x1b\[[0-9;]*m/g, '');
+
+              const lines = output.split('\n');
+
+              // Extract summary line (usually at the end)
+              const summaryLine = lines.filter(l => l.includes('passed') || l.includes('failed')).pop() || '';
+
+              // Determine status
+              const hasFailures = output.includes('FAILED') || output.includes('ERROR');
+              const status = hasFailures ? '❌ Tests Failed' : '✅ Tests Passed';
+
+              comment += `### ${status}\n\n`;
+
+              if (summaryLine) {
+                comment += `**Summary:** ${summaryLine.trim()}\n\n`;
+              }
+
+              comment += '<details>\n<summary>Full Test Output</summary>\n\n```\n';
+              comment += output.substring(0, 60000); // GitHub comment size limit
+              if (output.length > 60000) {
+                comment += '\n... (output truncated, see artifacts for full log)\n';
+              }
+              comment += '```\n</details>\n';
+            } else {
+              comment += '⚠️ Test output file not found. Check workflow logs for details.\n';
+            }
+
+            comment += `\n**Workflow Run:** ${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.pull_request.number }},
+              body: comment
+            });
+
+  remove-label:
+    needs: comment
+    if: github.event.label.name == 'gpu-tests' && always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove label after completion
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: gpu-tests
