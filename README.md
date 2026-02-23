@@ -17,15 +17,21 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 ## ⚙️ How It Works
 
 ```mermaid
-flowchart LR
-    A([Add gpu-tests label\n to a PR]) --> B[label-gpu-tests.yml\n PR validation]
-    C([push to main\n git / CLI]) --> D[run-gpu-tests.yml\n post-merge & ad-hoc]
-    E([workflow_dispatch\n GitHub UI / gh CLI]) --> D
-    B & D --> F[_modal-gpu-tests.yml\n reusable core]
-    F --> G[build container\n CUDA env + project deps]
-    G --> H[run pytest\n on real NVIDIA GPU]
-    H --> I[post PR comment\n upload artifact]
-    I -.->|label flow| J([label removed\n ready to re-trigger])
+flowchart TB
+    subgraph triggers [" "]
+        direction LR
+        A([Add gpu-tests label\n to a PR]) --> B[label-gpu-tests.yml\n PR validation]
+        C([push to main\n git / CLI]) --> D[run-gpu-tests.yml\n post-merge & ad-hoc]
+        E([workflow_dispatch\n GitHub UI / gh CLI]) --> D
+    end
+    subgraph execution [" "]
+        direction LR
+        F[_modal-gpu-tests.yml\n reusable core] --> G[build container\n CUDA env + project deps]
+        G --> H[run pytest\n on real NVIDIA GPU]
+        H --> I[post PR comment\n upload artifact]
+        I -.->|label flow| J([label removed\n ready to re-trigger])
+    end
+    B & D --> F
 ```
 
 **PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label. 
