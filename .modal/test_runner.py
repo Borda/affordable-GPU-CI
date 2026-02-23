@@ -70,7 +70,7 @@ image = (
     gpu=GPU_TYPE,  # GPU type from environment variable
     timeout=3600,  # Hard 1 hour timeout safety limit
 )
-def run_tests(test_path: str = "tests/", pytest_args: str = "-v"):
+def run_tests(test_path: str = "tests/", pytest_args: str = "-v") -> None:
     """Run pytest on Modal GPU infrastructure."""
     import os
     import subprocess
@@ -187,7 +187,7 @@ def run_tests(test_path: str = "tests/", pytest_args: str = "-v"):
 def main(
     test_path: str = "tests/",
     pytest_args: str = "-v",
-):
+) -> None:
     """Local entrypoint to run tests on Modal GPU."""
     print(
         f"\n{'='*80}\n"
@@ -200,7 +200,7 @@ def main(
         f"{'='*80}\n"
     )
 
-    # Run tests remotely with streaming output
+    # Run tests remotely and collect output after completion
     result = run_tests.remote(test_path=test_path, pytest_args=pytest_args)
 
     # Save output to local file

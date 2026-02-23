@@ -32,7 +32,7 @@ jobs:
       - name: 🚀 Install Packages
         run: |
           uv pip install -e . --group tests
-          uv pip install modal
+
 
       - name: Run Modal GPU tests
         env:
