@@ -23,9 +23,9 @@ flowchart TB
     subgraph left [" "]
         direction LR
         A(["**Add** `gpu-tests` **label**<br/> to a PR"]) --> B["**label-gpu-tests.yml**<br/> PR validation"]
-        K["**download artifact**"] --> L["**post PR comment**"] --> J(["**label removed**<br/> ready to re-trigger"])
+        K["**post PR comment**<br/> download artifact + format output"] --> J(["**label removed**<br/> ready to re-trigger"])
     end
-    subgraph mid ["_modal-gpu-tests.yml — reusable core"]
+    subgraph mid ["_modal-gpu-tests.yml"]
         direction LR
         subgraph modal ["☁️ offloaded to Modal GPU"]
             direction LR
