@@ -113,4 +113,5 @@ warn_unused_ignores = true
 [dependency-groups]
 tests = [
   "pytest",
+  "modal"
 ]

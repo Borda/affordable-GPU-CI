@@ -1,0 +1,52 @@
+name: Modal GPU Tests (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+        default: ""
+    secrets:
+      MODAL_TOKEN_ID:
+        required: true
+      MODAL_TOKEN_SECRET:
+        required: true
+
+jobs:
+  gpu-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: 🐍 Install uv and set Python
+        uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7.2.0
+        with:
+          python-version: "3.10"
+          activate-environment: true
+
+      - name: 🚀 Install Packages
+        run: |
+          uv pip install -e . --group tests
+
+
+      - name: Run Modal GPU tests
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          MODAL_GPU: ${{ vars.MODAL_GPU || 'L4' }}
+        run: |
+          modal run .modal/test_runner.py
+
+      - name: Upload pytest output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-output
+          path: test-outputs/pytest-output.log
+          if-no-files-found: warn
+          retention-days: 30
