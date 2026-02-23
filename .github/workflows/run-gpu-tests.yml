@@ -2,9 +2,7 @@ name: Modal GPU Tests (manual)
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main]
   workflow_dispatch:
     inputs:
       ref:

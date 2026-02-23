@@ -18,14 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv and set Python version
+      - name: 🐍 Install uv and set Python version
         uses: astral-sh/setup-uv@v7.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           activate-environment: true
 
-      - name: Install package and test dependencies
+      - name: 📦 Install package and test dependencies
         run: uv pip install -e . --group tests
 
-      - name: Run tests
+      - name: 🧪 Run tests
         run: python -m pytest tests/ -v
