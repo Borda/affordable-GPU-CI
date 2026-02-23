@@ -18,22 +18,17 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 
 ```mermaid
 flowchart LR
-    A([gpu-tests label added to PR]) --> B[label-gpu-tests.yml]
-    C([push to main\nor dispatch]) --> D[run-gpu-tests.yml]
-    B & D --> E[_modal-gpu-tests.yml]
-    E --> F[Modal GPU]
-    F --> G[pytest runs]
-    G --> H[PR comment + artifact]
+    A([Add gpu-tests label\n to a PR]) --> B[label-gpu-tests.yml\n PR validation]
+    C([push to main\n git / CLI]) --> D[run-gpu-tests.yml\n post-merge & ad-hoc]
+    E([workflow_dispatch\n GitHub UI / gh CLI]) --> D
+    B & D --> F[_modal-gpu-tests.yml\n reusable core]
+    F --> G[build container\n CUDA env + project deps]
+    G --> H[run pytest\n on real NVIDIA GPU]
+    H --> I[post PR comment\n upload artifact]
+    I -.->|label flow| J([label removed\n ready to re-trigger])
 ```
 
-**PR validation (main use case):**
-
-1. Add the `gpu-tests` label to a PR
-2. GitHub Actions calls the reusable Modal workflow
-3. Modal builds a container with your project + CUDA environment
-4. Tests run on a real NVIDIA GPU (L4, T4, A10G, A100 — your choice)
-5. Full pytest output is posted as a PR comment and uploaded as an artifact
-6. The label is removed automatically
+**PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label. 
 
 **Post-merge validation:** Every push to `main` (or a manual `workflow_dispatch`) also runs the full GPU suite — so you can always trace regressions back to a specific merge.
 
