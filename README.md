@@ -1,8 +1,10 @@
 # Affordable GPU CI with Modal
 
-[![CI testing](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/ci_testing.yml/badge.svg)](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/ci_testing.yml)
-[![Modal GPU Tests](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/run-gpu-tests.yml/badge.svg)](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/run-gpu-tests.yml)
-[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/Borda/affordable-GPU-CI_Modal/blob/main/pyproject.toml)
+[![CI testing](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/ci_testing.yml/badge.svg)](.github/workflows/ci_testing.yml)
+[![Modal GPU Tests](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/run-gpu-tests.yml/badge.svg)](.github/workflows/run-gpu-tests.yml)
+[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](pyproject.toml)
+
+> When you copy this template to a different repository, update the badge image URLs in the README header to your new `owner/repo`.
 
 > **Stop paying for idle GPU runners.** Run your GPU tests on real NVIDIA hardware for pennies — or free — using [Modal](https://modal.com)'s serverless GPUs.
 
@@ -17,20 +19,20 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 ## ⚙️ How It Works
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph left [" "]
-        direction TB
+        direction LR
         A([**Add gpu-tests label**\n to a PR]) --> B[**label-gpu-tests.yml**\n PR validation]
         K[**post PR comment**] --> J([**label removed**\n ready to re-trigger])
     end
     subgraph mid [" "]
-        direction TB
+        direction LR
         F[**_modal-gpu-tests.yml**\n reusable core] --> G[**build container**\n CUDA env + project deps]
         G --> H[**run pytest**\n on real NVIDIA GPU]
         H --> I[**upload artifact**]
     end
     subgraph right [" "]
-        direction TB
+        direction LR
         C([**push to main**\n git / CLI]) --> D[**run-gpu-tests.yml**\n post-merge & ad-hoc]
         E([**workflow_dispatch**\n GitHub UI / gh CLI]) --> D
     end
@@ -80,6 +82,10 @@ Get your token at [modal.com](https://modal.com) — free signup, no credit card
 Add the `gpu-tests` label to any open PR. That's it.
 
 ```bash
+# Prerequisites for local runs:
+# 1) uv tool install modal   (or: pip install modal)
+# 2) modal token new
+#
 # Or run locally:
 modal run .modal/test_runner.py
 

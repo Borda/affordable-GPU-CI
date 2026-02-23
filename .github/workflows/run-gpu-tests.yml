@@ -1,4 +1,4 @@
-name: Modal GPU Tests (manual)
+name: Modal GPU Tests
 
 on:
   push:
