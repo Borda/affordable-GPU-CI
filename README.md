@@ -17,21 +17,26 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 ## ⚙️ How It Works
 
 ```mermaid
-flowchart TB
-    subgraph triggers [" "]
-        direction LR
-        A([Add gpu-tests label\n to a PR]) --> B[label-gpu-tests.yml\n PR validation]
-        C([push to main\n git / CLI]) --> D[run-gpu-tests.yml\n post-merge & ad-hoc]
-        E([workflow_dispatch\n GitHub UI / gh CLI]) --> D
+flowchart LR
+    subgraph left [" "]
+        direction TB
+        A([**Add gpu-tests label**\n to a PR]) --> B[**label-gpu-tests.yml**\n PR validation]
+        K[**post PR comment**] --> J([**label removed**\n ready to re-trigger])
     end
-    subgraph execution [" "]
-        direction LR
-        F[_modal-gpu-tests.yml\n reusable core] --> G[build container\n CUDA env + project deps]
-        G --> H[run pytest\n on real NVIDIA GPU]
-        H --> I[post PR comment\n upload artifact]
-        I -.->|label flow| J([label removed\n ready to re-trigger])
+    subgraph mid [" "]
+        direction TB
+        F[**_modal-gpu-tests.yml**\n reusable core] --> G[**build container**\n CUDA env + project deps]
+        G --> H[**run pytest**\n on real NVIDIA GPU]
+        H --> I[**upload artifact**]
     end
-    B & D --> F
+    subgraph right [" "]
+        direction TB
+        C([**push to main**\n git / CLI]) --> D[**run-gpu-tests.yml**\n post-merge & ad-hoc]
+        E([**workflow_dispatch**\n GitHub UI / gh CLI]) --> D
+    end
+    B --> F
+    D --> F
+    I -->|label flow| K
 ```
 
 **PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label. 
