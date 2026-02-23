@@ -18,8 +18,15 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 
 ```mermaid
 flowchart LR
-    A[Add label] --> B[GitHub Action triggers] --> C[Modal spins up GPU] --> D[pytest runs] --> E[Results posted to PR] --> F[Label removed]
+    A([gpu-tests label added to PR]) --> B[label-gpu-tests.yml]
+    C([push to main\nor dispatch]) --> D[run-gpu-tests.yml]
+    B & D --> E[_modal-gpu-tests.yml]
+    E --> F[Modal GPU]
+    F --> G[pytest runs]
+    G --> H[PR comment + artifact]
 ```
+
+**PR validation (main use case):**
 
 1. Add the `gpu-tests` label to a PR
 2. GitHub Actions calls the reusable Modal workflow
@@ -27,6 +34,8 @@ flowchart LR
 4. Tests run on a real NVIDIA GPU (L4, T4, A10G, A100 — your choice)
 5. Full pytest output is posted as a PR comment and uploaded as an artifact
 6. The label is removed automatically
+
+**Post-merge validation:** Every push to `main` (or a manual `workflow_dispatch`) also runs the full GPU suite — so you can always trace regressions back to a specific merge.
 
 No GPU runner sitting idle. No per-minute billing for setup time. Pay only for actual test execution.
 
@@ -94,11 +103,12 @@ Set the GPU type with a repository variable `MODAL_GPU` (defaults to `L4`).
 
 ## 🔀 Workflow Overview
 
-| Workflow | Trigger | Who can trigger |
-|---|---|---|
-| `label-gpu-tests.yml` | PR label `gpu-tests` | Maintainers only (label permission) |
-| `run-gpu-tests.yml` | Push to `main` / `workflow_dispatch` | Maintainers only (branch/dispatch permission) |
-| `_modal-gpu-tests.yml` | Called by the above | — (reusable core, not triggered directly) |
+| Workflow | Trigger | Purpose | Who can trigger |
+|---|---|---|---|
+| `label-gpu-tests.yml` | `pull_request` + `gpu-tests` label | PR validation — test PR code, post results as a comment | Maintainers only (only they can add labels) |
+| `run-gpu-tests.yml` | `push` to `main` | Post-merge validation — confirm GPU tests pass after merge | Maintainers (merge to main) |
+| `run-gpu-tests.yml` | `workflow_dispatch` | Ad-hoc run on any ref | Maintainers (repository write access) |
+| `_modal-gpu-tests.yml` | `workflow_call` | Reusable core — called by the above two | — (not triggered directly) |
 
 ### Why Labels Are the Right Trigger
 
@@ -135,6 +145,11 @@ jobs:
     uses: ./.github/workflows/_modal-gpu-tests.yml
     secrets: inherit
 ```
+
+The two `pull_request` variants behave differently for fork PRs — choose deliberately:
+
+- ✅ `pull_request` — GitHub's built-in protection applies: **secrets are never passed to workflows triggered by fork PRs**. Combined with the label gate this gives two independent layers: only a maintainer can add the label, and fork code can never reach your Modal credentials regardless. For same-repo PRs (the normal contributor flow) secrets are available and everything works as expected.
+- ❌ `pull_request_target` — runs in the base repo's context so secrets are always available, including for fork PRs. That means executing untrusted fork code with your credentials, which is a security risk regardless of other gates.
 
 Results are posted as a PR comment with full pytest output. The label is removed after completion so re-adding it re-triggers the run.
 
@@ -173,9 +188,3 @@ The `.github/workflows/_modal-gpu-tests.yml` reusable workflow and `.modal/test_
 ## 🤝 Contributing
 
 Contributions are welcome! If you have ideas for improvements, run into issues, or want to share how you've adapted this for your project — open an issue or a PR on [GitHub](https://github.com/Borda/affordable-GPU-CI_Modal).
-
-Some areas where help is especially appreciated:
-
-- Support for additional CI systems (GitLab CI, Bitbucket Pipelines)
-- Examples for other ML frameworks (JAX, TensorFlow)
-- Cost benchmarks from real projects
