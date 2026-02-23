@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
@@ -34,7 +34,7 @@ jobs:
           uv pip install -e . --group tests
 
 
-      - name: Run Modal GPU tests
+      - name: 🎮 Run Modal GPU tests
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
@@ -42,7 +42,7 @@ jobs:
         run: |
           modal run .modal/test_runner.py
 
-      - name: Upload pytest output
+      - name: 📤 Upload pytest output
         if: always()
         uses: actions/upload-artifact@v4
         with:

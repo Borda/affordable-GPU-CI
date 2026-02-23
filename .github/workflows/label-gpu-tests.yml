@@ -17,18 +17,18 @@ jobs:
       ref: ${{ github.event.pull_request.head.sha }}
     secrets: inherit
 
-  comment:
+  comment-on-PR:
     needs: run-if-labeled
     if: github.event.label.name == 'gpu-tests' && always()
     runs-on: ubuntu-latest
     steps:
-      - name: Download pytest output
+      - name: 📥 Download pytest output
         uses: actions/download-artifact@v4
         with:
           name: pytest-output
           path: test-outputs
 
-      - name: Comment on PR with test results
+      - name: 💬 Comment on PR with test results
         uses: actions/github-script@v7
         with:
           script: |
@@ -79,11 +79,11 @@ jobs:
             });
 
   remove-label:
-    needs: comment
+    needs: comment-on-PR
     if: github.event.label.name == 'gpu-tests' && always()
     runs-on: ubuntu-latest
     steps:
-      - name: Remove label after completion
+      - name: 🏷️ Remove label after completion
         uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: gpu-tests
