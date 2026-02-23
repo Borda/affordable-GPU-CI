@@ -1,8 +1,9 @@
 # Affordable GPU CI with Modal
 
-[![CI testing](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/ci_testing.yml/badge.svg)](.github/workflows/ci_testing.yml)
-[![Modal GPU Tests](https://github.com/Borda/affordable-GPU-CI_Modal/actions/workflows/run-gpu-tests.yml/badge.svg)](.github/workflows/run-gpu-tests.yml)
+[![CI testing](https://github.com/Borda/affordable-GPU-CI/actions/workflows/ci_testing.yml/badge.svg)](.github/workflows/ci_testing.yml)
+[![Modal GPU Tests](https://github.com/Borda/affordable-GPU-CI/actions/workflows/run-gpu-tests.yml/badge.svg)](.github/workflows/run-gpu-tests.yml)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](pyproject.toml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/affordable-GPU-CI/main.svg)](https://results.pre-commit.ci/latest/github/Borda/affordable-GPU-CI/main)
 
 > When you copy this template to a different repository, update the badge image URLs in the README header to your new `owner/repo`.
 
@@ -17,6 +18,10 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 ![Sample GH comment with test report](.assets/gh-comment-modal.webp)
 
 ## ⚙️ How It Works
+
+**PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label.
+
+**Post-merge validation:** Every push to `main` (or a manual `workflow_dispatch`) also runs the full GPU suite — so you can always trace regressions back to a specific merge.
 
 ```mermaid
 flowchart TB
@@ -64,10 +69,6 @@ flowchart TB
     style job_comment-pr fill:#f3f4f6,stroke:#9ca3af
     style job_remove-label fill:#f3f4f6,stroke:#9ca3af
 ```
-
-**PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label.
-
-**Post-merge validation:** Every push to `main` (or a manual `workflow_dispatch`) also runs the full GPU suite — so you can always trace regressions back to a specific merge.
 
 No GPU runner sitting idle. No per-minute billing for setup time. Pay only for actual test execution.
 
@@ -223,4 +224,4 @@ The `.github/workflows/_modal-gpu-tests.yml` reusable workflow and `.modal/test_
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you have ideas for improvements, run into issues, or want to share how you've adapted this for your project — open an issue or a PR on [GitHub](https://github.com/Borda/affordable-GPU-CI_Modal).
+Contributions are welcome! If you have ideas for improvements, run into issues, or want to share how you've adapted this for your project — open an issue or a PR on [GitHub](https://github.com/Borda/affordable-GPU-CI).
