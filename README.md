@@ -21,29 +21,48 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 ```mermaid
 flowchart TB
     subgraph left [" "]
-        direction LR
-        A(["**Add** `gpu-tests` **label**<br/> to a PR"]) --> B["**label-gpu-tests.yml**<br/> PR validation"]
-        K["**post PR comment**<br/> download artifact + format output"] --> J(["**label removed**<br/> ready to re-trigger"])
-    end
-    subgraph mid ["_modal-gpu-tests.yml"]
-        direction LR
-        subgraph modal ["☁️ offloaded to Modal GPU"]
-            direction LR
-            G["**build container**<br/> CUDA env + project deps"] --> H["**run pytest**<br/> on real NVIDIA GPU"]
+        direction TB
+        event_add-label(["**Add** `gpu-tests` **label**<br/> to a PR"])
+        subgraph workflow_label ["label-gpu-tests.yml"]
+            direction TB
+            subgraph job_run-if-labeled ["job: run-if-labeled"]
+            end
+            subgraph job_comment-pr ["job: comment-on-PR"]
+                direction TB
+                step_download["**download artifact**"] --> step_post-comment(["**post PR comment**<br/> format output"])
+            end
+            subgraph job_remove-label ["job: remove-label"]
+                event_remove-label(["**Remove** `gpu-tests` **label**"])
+            end
+            job_comment-pr --> job_remove-label
         end
-        H --> I["**upload artifact**"]
+        event_add-label --> job_run-if-labeled
+    end
+    subgraph workflow_gpu-tests ["**_modal-gpu-tests.yml**"]
+        direction TB
+        subgraph modal_gpu ["☁️ offloaded to **Modal GPU**"]
+            direction TB
+            step_build["**build container**<br/> CUDA env + project deps"] --> step_pytest["**run pytest**<br/> on real NVIDIA GPU"]
+        end
+        step_pytest --> step_upload["**upload artifact**"]
     end
     subgraph right [" "]
         direction LR
-        C(["**push to main**<br/> git / CLI"]) --> D["**run-gpu-tests.yml**<br/> post-merge & ad-hoc"]
-        E(["**workflow_dispatch**<br/> GitHub UI / gh CLI"]) --> D
+        event_push(["**push to main**<br/> git / CLI"]) --> workflow_run["**run-gpu-tests.yml**<br/> post-merge & ad-hoc"]
+        event_dispatch(["**workflow_dispatch**<br/> GitHub UI / gh CLI"]) --> workflow_run
     end
-    B --> mid
-    D --> mid
-    I -.-> K
-    classDef yamlFile fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
-    class B,D yamlFile
-    style mid fill:#dbeafe,stroke:#3b82f6
+    job_run-if-labeled --> workflow_gpu-tests
+    workflow_run --> workflow_gpu-tests
+    workflow_gpu-tests --> job_comment-pr
+    classDef entry fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    class event_add-label,event_push,event_dispatch,event_remove-label entry
+    style workflow_label fill:#dbeafe,stroke:#3b82f6
+    style job_run-if-labeled fill:#f3f4f6,stroke:#9ca3af
+    style workflow_run fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+    style workflow_gpu-tests fill:#dbeafe,stroke:#3b82f6
+    style modal_gpu fill:#dcfce7,stroke:#16a34a
+    style job_comment-pr fill:#f3f4f6,stroke:#9ca3af
+    style job_remove-label fill:#f3f4f6,stroke:#9ca3af
 ```
 
 **PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label. 
