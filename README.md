@@ -65,7 +65,7 @@ flowchart TB
     style job_remove-label fill:#f3f4f6,stroke:#9ca3af
 ```
 
-**PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label. 
+**PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label.
 
 **Post-merge validation:** Every push to `main` (or a manual `workflow_dispatch`) also runs the full GPU suite — so you can always trace regressions back to a specific merge.
 
