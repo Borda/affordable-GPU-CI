@@ -16,7 +16,7 @@ from pathlib import Path
 
 import modal
 
-# Create Modal app with profile name from environment or default
+# Create Modal app with a fixed, descriptive name
 app = modal.App("ci-gpu-tests")
 
 # Get GPU type from environment or default to L4
@@ -54,14 +54,12 @@ image = (
             "docs",
             "test_synthetic_output",
             "uv.lock",
-        ]
+        ],
     )
     .workdir("/root/project")
     # Install dependencies during image build for faster execution
     # Note: tests dependencies are in [dependency-groups] not [project.optional-dependencies]
-    .run_commands(
-        "uv pip install -e . --group tests --system"
-    )
+    .run_commands("uv pip install -e . --group tests --system")
 )
 
 
@@ -70,7 +68,7 @@ image = (
     gpu=GPU_TYPE,  # GPU type from environment variable
     timeout=3600,  # Hard 1 hour timeout safety limit
 )
-def run_tests(test_path: str = "tests/", pytest_args: str = "-v") -> None:
+def run_tests(test_path: str = "tests/", pytest_args: str = "-v") -> dict[str, object]:
     """Run pytest on Modal GPU infrastructure."""
     import os
     import subprocess
@@ -81,27 +79,17 @@ def run_tests(test_path: str = "tests/", pytest_args: str = "-v") -> None:
     # Verify GPU availability
     try:
         import torch
-        gpu_info = (
-            f"\n{'='*80}\n"
-            f"GPU ENVIRONMENT CHECK\n"
-            f"{'='*80}\n"
-            f"🎮 GPU Available: {torch.cuda.is_available()}\n"
-        )
+
+        gpu_info = f"\n{'=' * 80}\nGPU ENVIRONMENT CHECK\n{'=' * 80}\n🎮 GPU Available: {torch.cuda.is_available()}\n"
         if torch.cuda.is_available():
             gpu_info += (
                 f"🎮 GPU Device: {torch.cuda.get_device_name(0)}\n"
                 f"🎮 GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB\n"
             )
-        gpu_info += f"{'='*80}\n"
+        gpu_info += f"{'=' * 80}\n"
         print(gpu_info)
     except Exception as e:
-        print(
-            f"\n{'='*80}\n"
-            f"GPU ENVIRONMENT CHECK\n"
-            f"{'='*80}\n"
-            f"⚠️  GPU check failed: {e}\n"
-            f"{'='*80}\n"
-        )
+        print(f"\n{'=' * 80}\nGPU ENVIRONMENT CHECK\n{'=' * 80}\n⚠️  GPU check failed: {e}\n{'=' * 80}\n")
 
     # Build pytest command
     pytest_cmd = ["pytest", test_path]
@@ -110,18 +98,19 @@ def run_tests(test_path: str = "tests/", pytest_args: str = "-v") -> None:
     if pytest_args:
         # Split args properly, handling quoted strings
         import shlex
+
         pytest_cmd.extend(shlex.split(pytest_args))
 
     # Disable colored output for clean logs (especially for CI)
     pytest_cmd.append("--color=no")
 
     print(
-        f"{'='*80}\n"
+        f"{'=' * 80}\n"
         f"RUNNING TESTS\n"
-        f"{'='*80}\n"
+        f"{'=' * 80}\n"
         f"Command: {' '.join(pytest_cmd)}\n"
         f"Working directory: {os.getcwd()}\n"
-        f"{'='*80}\n"
+        f"{'=' * 80}\n"
     )
 
     # Create output directory for pytest logs
@@ -129,51 +118,46 @@ def run_tests(test_path: str = "tests/", pytest_args: str = "-v") -> None:
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / "pytest-output.log"
 
-    # Run pytest and capture output to both console and file
+    # Run pytest and stream output to both console and file
     try:
+        output_lines: list[str] = []
         with open(output_file, "w") as log_file:
-            # Run pytest with output going to both stdout and file
-            result = subprocess.run(
+            process = subprocess.Popen(  # noqa: S603
                 pytest_cmd,
                 cwd="/root/project",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                bufsize=1,
             )
 
-            # Write to file
-            log_file.write(result.stdout)
-            # Also print to console for real-time viewing
-            print(result.stdout, end="")
+            # Stream output line by line in real time while persisting it.
+            if process.stdout is None:
+                raise RuntimeError("Failed to capture pytest output stream.")
+            for line in process.stdout:
+                print(line, end="")
+                log_file.write(line)
+                output_lines.append(line)
+            process.wait()
 
         print(
-            f"\n{'='*80}\n"
+            f"\n{'=' * 80}\n"
             f"TEST EXECUTION COMPLETE\n"
-            f"{'='*80}\n"
-            f"Exit code: {result.returncode}\n"
+            f"{'=' * 80}\n"
+            f"Exit code: {process.returncode}\n"
             f"📄 Test output saved to: {output_file}\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
         )
 
-        # Read the log file content to return
-        with open(output_file, "r") as f:
-            pytest_output = f.read()
-
         return {
-            "returncode": result.returncode,
-            "success": result.returncode == 0,
-            "pytest_output": pytest_output,
+            "returncode": process.returncode,
+            "success": process.returncode == 0,
+            "pytest_output": "".join(output_lines),
             "output_file": str(output_file),
         }
 
     except Exception as e:
-        print(
-            f"\n{'='*80}\n"
-            f"ERROR DURING TEST EXECUTION\n"
-            f"{'='*80}\n"
-            f"Error: {e}\n"
-            f"{'='*80}\n"
-        )
+        print(f"\n{'=' * 80}\nERROR DURING TEST EXECUTION\n{'=' * 80}\nError: {e}\n{'=' * 80}\n")
 
         return {
             "returncode": 1,
@@ -190,14 +174,14 @@ def main(
 ) -> None:
     """Local entrypoint to run tests on Modal GPU."""
     print(
-        f"\n{'='*80}\n"
+        f"\n{'=' * 80}\n"
         f"GPU TEST RUNNER\n"
-        f"{'='*80}\n"
+        f"{'=' * 80}\n"
         f"📁 Test Path: {test_path}\n"
         f"⚙️  Pytest Args: {pytest_args}\n"
         f"🎮 GPU: {GPU_TYPE}\n"
         f"⏱️  Timeout: 1 hour\n"
-        f"{'='*80}\n"
+        f"{'=' * 80}\n"
     )
 
     # Run tests remotely and collect output after completion
@@ -214,19 +198,15 @@ def main(
         print(f"📄 Test output saved to: {local_output_file}")
 
     final_status = (
-        f"\n{'='*80}\n"
-        f"FINAL RESULTS\n"
-        f"{'='*80}\n"
-        f"Return Code: {result['returncode']}\n"
-        f"Success: {result['success']}\n"
+        f"\n{'=' * 80}\nFINAL RESULTS\n{'=' * 80}\nReturn Code: {result['returncode']}\nSuccess: {result['success']}\n"
     )
 
     if not result["success"]:
         if "error" in result:
             final_status += f"Error: {result['error']}\n"
-        final_status += f"{'='*80}\n"
+        final_status += f"{'=' * 80}\n"
         print(final_status)
         sys.exit(result["returncode"])
 
-    final_status += f"{'='*80}\n\n✅ All tests passed!"
+    final_status += f"{'=' * 80}\n\n✅ All tests passed!"
     print(final_status)
