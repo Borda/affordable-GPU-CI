@@ -22,13 +22,15 @@ Add a `gpu-tests` label to any PR and get results like this — automatically:
 flowchart TB
     subgraph left [" "]
         direction LR
-        A(["**Add gpu-tests label**<br/> to a PR"]) --> B["**label-gpu-tests.yml**<br/> PR validation"]
-        K["**post PR comment**"] --> J(["**label removed**<br/> ready to re-trigger"])
+        A(["**Add** `gpu-tests` **label**<br/> to a PR"]) --> B["**label-gpu-tests.yml**<br/> PR validation"]
+        K["**download artifact**"] --> L["**post PR comment**"] --> J(["**label removed**<br/> ready to re-trigger"])
     end
-    subgraph mid [" "]
+    subgraph mid ["_modal-gpu-tests.yml — reusable core"]
         direction LR
-        F["**_modal-gpu-tests.yml**<br/> reusable core"] --> G["**build container**<br/> CUDA env + project deps"]
-        G --> H["**run pytest**<br/> on real NVIDIA GPU"]
+        subgraph modal ["☁️ offloaded to Modal GPU"]
+            direction LR
+            G["**build container**<br/> CUDA env + project deps"] --> H["**run pytest**<br/> on real NVIDIA GPU"]
+        end
         H --> I["**upload artifact**"]
     end
     subgraph right [" "]
@@ -36,9 +38,12 @@ flowchart TB
         C(["**push to main**<br/> git / CLI"]) --> D["**run-gpu-tests.yml**<br/> post-merge & ad-hoc"]
         E(["**workflow_dispatch**<br/> GitHub UI / gh CLI"]) --> D
     end
-    B --> F
-    D --> F
+    B --> mid
+    D --> mid
     I -.-> K
+    classDef yamlFile fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+    class B,D yamlFile
+    style mid fill:#dbeafe,stroke:#3b82f6
 ```
 
 **PR validation (main use case):** A maintainer adds the `gpu-tests` label to a PR — GitHub Actions checks out the PR's actual code, spins up a Modal GPU, runs pytest, posts results as a PR comment, and removes the label. 
