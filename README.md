@@ -5,7 +5,8 @@
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](pyproject.toml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/affordable-GPU-CI/main.svg)](https://results.pre-commit.ci/latest/github/Borda/affordable-GPU-CI/main)
 
-> When you copy this template to a different repository, update the badge image URLs in the README header to your new `owner/repo`.
+> [!TIP]
+> **This is a GitHub Template.** Click **"Use this template"** to create your own repo, then update the badge URLs above to your new `owner/repo`. See [Use in Your Project](#-use-in-your-project) for all options.
 
 > **Stop paying for idle GPU runners.** Run your GPU tests on real NVIDIA hardware for pennies — or free — using [Modal](https://modal.com)'s serverless GPUs.
 
@@ -121,6 +122,46 @@ MODAL_GPU=A100 modal run .modal/test_runner.py
 modal run .modal/test_runner.py --test-path tests/ --pytest-args "-v -k gpu"
 ```
 
+## 🚚 Use in Your Project
+
+Three ways to get started, depending on your situation:
+
+### Option A: GitHub Template (new repo)
+
+Click **["Use this template"](https://github.com/Borda/affordable-GPU-CI/generate)** on the repo page. You get a fresh repo with all workflows and the `.modal/` folder ready to go. Update the badge URLs in the README header and add your Modal secrets.
+
+### Option B: Fork (for contributing back)
+
+Fork the repo if you plan to contribute improvements or fixes upstream. PRs welcome!
+
+### Option C: Copy into an existing project
+
+Copy these paths into your repo and hack away:
+
+```
+.modal/                              # Modal test runner (must be local)
+.github/workflows/_modal-gpu-tests.yml
+.github/workflows/label-gpu-tests.yml
+.github/workflows/run-gpu-tests.yml
+```
+
+Then customize the caller workflows (`label-gpu-tests.yml`, `run-gpu-tests.yml`) — uncomment and change the input defaults to match your project:
+
+```yaml
+# in label-gpu-tests.yml or run-gpu-tests.yml
+uses: ./.github/workflows/_modal-gpu-tests.yml
+with:
+  gpu: "A100"           # default: L4
+  python-version: "3.11" # default: 3.10
+  test-path: "tests/gpu/" # default: tests/
+  pytest-args: "-v -k gpu" # default: -v
+```
+
+> [!IMPORTANT]
+> **Why copy, not cross-repo `uses:`?** The `modal run .modal/test_runner.py` command needs the `.modal/` folder in your repo. A cross-repo workflow call alone won't have access to that file. The primary model is copy/template.
+>
+> **Attribution:** If you use this template, a link back to [Borda/affordable-GPU-CI](https://github.com/Borda/affordable-GPU-CI) in your README or workflow comments is appreciated (but not required — it's Apache 2.0).
+
 ## 🆓 Free Tier Is Enough for Most Projects
 
 Modal's free tier gives you **$30 of compute per month**.
@@ -134,9 +175,10 @@ A typical test run on an L4 GPU (24 GB VRAM) takes 2–5 minutes and costs aroun
 | A10G | 24 GB | ~$0.02 |
 | A100 | 40/80 GB | ~$0.05 |
 
-> **Note:** Prices are approximate as of February 2026. For current pricing, see the [Modal pricing page](https://modal.com/pricing).
+> [!NOTE]
+> Prices are approximate as of February 2026. For current pricing, see the [Modal pricing page](https://modal.com/pricing).
 
-Set the GPU type with a repository variable `MODAL_GPU` (defaults to `L4`).
+Set the GPU type in the caller workflow inputs (defaults to `L4`). You can also override it per-run via `workflow_dispatch` in the GitHub UI.
 
 ## 🔀 Workflow Overview
 

@@ -52,7 +52,6 @@ image = (
             ".modal",
             "debugging",
             "docs",
-            "test_synthetic_output",
             "uv.lock",
         ],
     )
