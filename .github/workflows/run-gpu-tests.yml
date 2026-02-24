@@ -20,7 +20,7 @@ jobs:
     with:
       ref: ${{ inputs.ref || github.sha }}
       gpu: ${{ inputs.gpu || 'L4' }}
-      # python-version: "3.10"
-      # test-path: "tests/"
-      # pytest-args: "-v"
+      # python_version: "3.10"
+      # test_path: "tests/"
+      # pytest_args: "-v"
     secrets: inherit

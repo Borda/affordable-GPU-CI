@@ -151,10 +151,10 @@ Then customize the caller workflows (`label-gpu-tests.yml`, `run-gpu-tests.yml`)
 # in label-gpu-tests.yml or run-gpu-tests.yml
 uses: ./.github/workflows/_modal-gpu-tests.yml
 with:
-  gpu: "A100"           # default: L4
-  python-version: "3.11" # default: 3.10
-  test-path: "tests/gpu/" # default: tests/
-  pytest-args: "-v -k gpu" # default: -v
+  gpu: "A100"             # default: L4
+  python_version: "3.11"  # default: 3.10
+  test_path: "tests/gpu/" # default: tests/
+  pytest_args: "-v -k gpu" # default: -v
 ```
 
 > [!IMPORTANT]

@@ -12,17 +12,17 @@ on:
         required: false
         type: string
         default: "L4"
-      python-version:
+      python_version:
         description: "Python version for uv setup"
         required: false
         type: string
         default: "3.10"
-      test-path:
+      test_path:
         description: "Path passed to --test-path"
         required: false
         type: string
         default: "tests/"
-      pytest-args:
+      pytest_args:
         description: "Args passed to --pytest-args"
         required: false
         type: string
@@ -46,7 +46,7 @@ jobs:
       - name: 🐍 Install uv and set Python
         uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7.2.0
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${{ inputs.python_version }}
           activate-environment: true
 
       - name: 🚀 Install Packages
@@ -60,7 +60,7 @@ jobs:
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           MODAL_GPU: ${{ inputs.gpu }}
         run: |
-          modal run .modal/test_runner.py --test-path "${{ inputs['test-path'] }}" --pytest-args "${{ inputs['pytest-args'] }}"
+          modal run .modal/test_runner.py --test-path "${{ inputs.test_path }}" --pytest-args "${{ inputs.pytest_args }}"
 
       - name: 📤 Upload pytest output
         if: always()
