@@ -60,7 +60,7 @@ jobs:
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           MODAL_GPU: ${{ inputs.gpu }}
         run: |
-          modal run .modal/test_runner.py --test-path "${{ inputs.test-path }}" --pytest-args "${{ inputs.pytest-args }}"
+          modal run .modal/test_runner.py --test-path "${{ inputs['test-path'] }}" --pytest-args "${{ inputs['pytest-args'] }}"
 
       - name: 📤 Upload pytest output
         if: always()
